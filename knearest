@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct 13 19:25:13 2019
+
+@author: trvpo333
+"""
+import pylab as pl
+import pandas as pd 
+from sklearn.model_selection import train_test_split 
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import accuracy_score 
+from sklearn.metrics import classification_report 
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+from matplotlib import pyplot as plt
+import seaborn as sns
+sns.set()
+# Function importing Dataset 
+def importdata(): 
+
+    #kc1 kc2 pc1 jm1 cm1 (kc2 do not use y.astype int)
+    url = "http://promise.site.uottawa.ca/SERepository/datasets/cm1.arff"
+    names = ['loc', 'v(g)', 'ev(g)', 'iv(g)', 'n', 'v', 'l', 'd', 'i', 'e',
+         'b', 't', 'lOCode', 'lOComment', 'lOBlank', 'lOCodeAndComment', 'uniq_Op', 'uniq_Opnd', 'total_Op', 'total_Opnd'
+         , 'branchCount', 'defects']
+    #pc1, kc1 use skiprows = 356
+   # balance_data = pd.read_csv(url, names=names, skiprows=358)
+    balance_data = pd.read_csv("jm1.arff", names=names, skiprows=9)
+    # Printing the dataswet shape 
+    print ("Dataset Length: ", len(balance_data)) 
+    print ("Dataset Shape: ", balance_data.shape) 
+      
+    # Printing the dataset obseravtions 
+    print ("Dataset:\n ",balance_data.head()) 
+    return balance_data 
+  
+## Function to split the dataset 
+def splitdataset(balance_data): 
+  
+    # Seperating the target variable 
+    X = balance_data.values[:, 0:20] 
+    Y = balance_data.values[:, 21]
+
+    #Y = Y.astype(int)
+
+  
+    # Spliting the dataset into train and test 
+    X_train, X_test, y_train, y_test = train_test_split(  
+    X, Y, test_size = 0.3, random_state = 100) 
+      
+    return X, Y, X_train, X_test, y_train, y_test 
+
+# Function to calculate accuracy 
+def cal_accuracy(y_test, y_pred): 
+      
+    print("Confusion Matrix:\n ", 
+        confusion_matrix(y_test, y_pred)) 
+      
+    print ("Accuracy :\n ", 
+    accuracy_score(y_test,y_pred)*100) 
+      
+    print("Report (Prediction using K_Nearest Neighbors):\n ", 
+    classification_report(y_test, y_pred)) 
+  
+    
+# Driver code 
+def main(): 
+      
+    # Building Phase 
+    data = importdata() 
+    X, Y, X_train, X_test, y_train, y_test = splitdataset(data) 
+    #class__names = ['Not Faulty', 'Faulty']
+    knn = KNeighborsClassifier(n_neighbors=20, metric='euclidean')
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+
+    h = 0.2
+    #Predict the response for test dataset
+    y_pred = knn.predict(X_test)
+    cal_accuracy(y_test, y_pred) 
+    print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
+    # Calculate min, max and limits
+    x_min, x_max = X[:, 0].min() - 5, X[:, 0].max() + 5
+    y_min, y_max = X[:, 1].min() - 5, X[:, 1].max() + 5
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    
+    # Put the result into a color plot
+    plt.figure()
+    plt.scatter(X[:, 0], X[:, 1])
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.title("Data points")
+    plt.show()
+# Calling main function 
+if __name__=="__main__": 
+    main() 

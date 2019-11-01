@@ -1,0 +1,86 @@
+
+
+# first neural network with keras tutorial
+import pandas as pd
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score 
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import accuracy_score 
+from sklearn.metrics import classification_report 
+import sklearn.metrics as metrics
+
+# load the dataset
+names = ['loc', 'v(g)', 'ev(g)', 'iv(g)', 'n', 'v', 'l', 'd', 'i', 'e',
+         'b', 't', 'lOCode', 'lOComment', 'lOBlank', 'lOCodeAndComment', 'uniq_Op', 'uniq_Opnd', 'total_Op', 'total_Opnd'
+         , 'branchCount', 'defects']
+#dataset = pd.read_csv("jm1.arff", names=names, skiprows= 9)
+# Load CSV
+names = ['loc', 'v(g)', 'ev(g)', 'iv(g)', 'n', 'v', 'l', 'd', 'i', 'e',
+         'b', 't', 'lOCode', 'lOComment', 'lOBlank', 'lOCodeAndComment', 'uniq_Op', 'uniq_Opnd', 'total_Op', 'total_Opnd'
+         , 'branchCount', 'defects']
+    #kc2 skip 358 and no yasint
+dataset = pd.read_csv("dataset.rtf", names=names, skiprows= 9)
+print(dataset.shape)
+# split into input (X) and output (y) variables
+X = dataset.values[:,0:20]
+y = dataset.values[:,21]
+false = "false\\"
+true = "true\\"
+for x in range(14596):
+    if y[x] == true:
+        y[x] = 1
+    else: 
+        y[x] = 0     
+# Seperating the target variable nb
+X = dataset.values[:, 0:20] 
+Y = dataset.values[:, 21] 
+#Y = Y.astype('int')  
+#3264 for 0.3, 2176 for 0.2, 4352 for 0.4
+# Spliting the dataset into train and test 
+X_train, X_test, y_train, y_test = train_test_split(  
+X, Y, test_size = 0.4, random_state = 100)         
+# define the keras model 80, 40, 1 all relu
+model = Sequential()
+model.add(Dense(1000, input_dim=20, activation='relu'))
+model.add(Dense(500, activation='relu'))
+model.add(Dense(50, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+# compile the keras model (loss='binary_crossentropy', optimizer='adam') adamax
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+# fit the keras model on the dataset
+model.fit(X, y, epochs=80, batch_size=100)
+# make class predictions with the model
+predictions = model.predict_classes(X_test)
+# evaluate the keras modelå
+_, accuracy = model.evaluate(X, y)
+# evaluate the keras model
+print('Accuracy: %.2f' % (accuracy*100))
+model.summary()
+
+#Create a Gaussian Classifier
+gnb = GaussianNB()
+#Train the model using the training sets
+gnb.fit(X_train, y_train)
+y_pred = gnb.predict(X_test)
+yy_pred = []
+
+for x in range(5839):
+    if predictions[x] == 0 and y_pred[x] == false :
+        yy_pred.append(false)
+    elif predictions[x] == 1 and y_pred[x] == true :
+        yy_pred.append(true)
+    else:
+        yy_pred.append(true)
+print("Confusion Matrix:\n ", 
+    confusion_matrix(y_test, yy_pred)) 
+  
+print ("Accuracy :\n ", 
+accuracy_score(y_test,yy_pred)*100) 
+  
+print("Report :\n ", 
+classification_report(y_test, yy_pred)) 
+
+
